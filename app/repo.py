@@ -29,7 +29,7 @@ def clone(url:str):
             raise RuntimeError(f"Failed to clone {url}: {r.stderr}")
     return dest,head_commit(dest)
 
-def lits_code_files(root:Path):
+def list_code_files(root:Path):
     files=[]
     for p in root.rglob("*"):
         rel=p.relative_to(root)
