@@ -36,3 +36,15 @@ def trace(CG, infos, target, start=None):
             if t in paths and t != e and (best is None or len(paths[t]) < len(best)):
                 best = paths[t]
     return best
+
+def path_mermaid(path, infos):
+    lines = ["flowchart LR"]
+    for i, node in enumerate(path):
+        p, fn = node.split("::")
+        route = next((r for f, r in infos[p].routes if f == fn), None)
+        parts = [fn + "()", p] + ([route] if route else [])
+        label = "<br/>".join(_clean(x, 60) for x in parts)
+        lines.append(f'  p{i}["{label}"]')
+        if i:
+            lines.append(f"  p{i - 1} --> p{i}")
+    return "\n".join(lines)
