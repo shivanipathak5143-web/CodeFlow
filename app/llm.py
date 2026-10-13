@@ -43,3 +43,32 @@ def _call(prompt:str)->str:
         timeout=300)
     r.raise_for_status()
     return r.json()["message"]["content"]
+
+def complete(prompt: str) -> str:
+    key = hashlib.sha256(f"{config.LLM_PROVIDER}|{_model()}|{prompt}".encode()).hexdigest()
+    path = config.SUMMARY_DIR / f"{key}.txt"
+    if path.exists():
+        return path.read_text()
+    out = _call(prompt)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(out)
+    return out
+
+def summarize_file(path: str, src: str, facts: str) -> str:
+    """Map-reduce for big files: summarise chunks, then combine."""
+    chunks = [src[i:i + CHUNK] for i in range(0, len(src), CHUNK)][:6]
+    ask = "In 3-5 sentences: what does this file do and what is its role in the project?"
+    if len(chunks) <= 1:
+        return complete(f"File: {path}\nStatic-analysis facts: {facts}\n\nCode:\n{src}\n\n{ask}")
+    parts = [complete(f"File: {path} (part {i + 1}/{len(chunks)})\n\n{c}\n\nSummarise this part in 2-3 sentences.")
+             for i, c in enumerate(chunks)]
+    joined = "\n".join(f"- {p}" for p in parts)
+    return complete(f"File: {path}\nFacts: {facts}\nPart summaries:\n{joined}\n\n{ask}")
+
+
+def summarize_repo(readme: str, file_summaries: dict) -> str:
+    body = "\n\n".join(f"{p}: {s}" for p, s in file_summaries.items())
+    return complete(
+        f"README (truncated):\n{readme[:3000]}\n\nSummaries of the most important files:\n{body}\n\n"
+        "Explain in one short paragraph what this project does, then list its main components "
+        "and how they fit together.")
