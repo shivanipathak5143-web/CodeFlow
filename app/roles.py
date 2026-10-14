@@ -16,7 +16,6 @@ ROLES = ["entry", "api", "model", "data", "training", "evaluation", "config", "u
 THRESHOLD = 0.45          # below this confidence a file is shown as "other"
 MODEL_PATH = Path(os.getenv("ROLE_MODEL", "models/role_clf.joblib"))
 
-# Weak labelling rules (first match wins). Used to create TRAINING LABELS and as a fallback.
 _RULES = [
     ("training", ("train", "fit", "optim", "loss", "schedul")),
     ("evaluation", ("eval", "metric", "score", "benchmark", "validat")),
@@ -77,7 +76,6 @@ def decide(classes, P, threshold=THRESHOLD):
 
 
 def top_terms(b, k=8):
-    """Most indicative code tokens per role (explains what the model learned)."""
     if not b["use_text"] or not hasattr(b["clf"], "coef_"):
         return {}
     names = np.array(b["vec"].get_feature_names_out())
@@ -96,7 +94,6 @@ def load_model():
 
 
 def predict_roles(a):
-    """path -> {role, confidence, source, rule}. Uses the trained model if present."""
     paths = sorted(a.infos)
     bundle = load_model()
     out = {}
