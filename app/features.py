@@ -16,7 +16,6 @@ MAIN_RE = re.compile(r"""__name__\s*==\s*['"]__main__['"]""")
 
 
 def split_identifier(name: str):
-    """getUserName / get_user_name -> ['get', 'user', 'name']"""
     return [p.lower() for p in PIECES.findall(name)]
 
 def code_tokens(src:str,limit:int=3000):
