@@ -1,6 +1,6 @@
-from dataclasse import dataclass
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any,Optional
+from typing import Any, Optional
 
 import networkx as nx
 from . import dataflow,features,graph,parser,repo
