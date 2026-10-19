@@ -14,7 +14,7 @@ def main(repos_file, out, max_per_repo=300):
         try:
             root, commit = repo.clone(url)
             a = analysis.build(root, commit)
-        except Exception as e:  # noqa: BLE001  (keep going if one repo fails)
+        except Exception as e:  
             print(f"skip {url}: {e}")
             continue
         paths = sorted(a.infos)
