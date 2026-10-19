@@ -49,4 +49,29 @@ def cross_validate(texts, nums, y, groups):
         preds[name] = (true_all, pred_all)
     return results, preds, n_splits
 
+def main(dataset, out="models/role_clf.joblib"):
+    texts, nums, y, groups = load(dataset)
+    print(f"{len(y)} labelled files from {len(set(groups))} repos; classes: {dict(Counter(y))}\n")
+    results, preds, n = cross_validate(texts, nums, y, groups)
+    print(f"Leave-repos-out cross-validation ({n} folds, test repos never seen in training)")
+    print(f"{'model':36s} {'macro-F1':>14s} {'accuracy':>10s}")
+    for name, (m, s, acc) in results.items():
+        print(f"{name:36s} {m:8.3f} ± {s:.3f} {acc:10.3f}")
+    # model selection: best cross-validated macro-F1 among the real (non-dummy) variants
+    best = max((n_ for n_ in results if "majority" not in n_), key=lambda n_: results[n_][0])
+    print(f"\nSelected by cross-validation: {best}")
+    print("Per-class report for the selected model (pooled over folds):")
+    print(classification_report(*preds[best], zero_division=0))
+    bundle = roles.fit(texts, nums, y, **VARIANTS[best])
+    print("Most indicative code tokens per role:")
+    for role, words in roles.top_terms(bundle).items():
+        print(f"  {role:11s} {', '.join(words)}")
+    Path(out).parent.mkdir(parents=True, exist_ok=True)
+    joblib.dump(bundle, out)
+    print(f"\nSaved model to {out}")
+    print("NOTE: labels come from path rules, so these scores measure agreement with the rules "
+          "on unseen repos. Use ml/make_gold.py + ml/eval_gold.py for a hand-labelled check.")
 
+
+if __name__ == "__main__":
+    main(*sys.argv[1:3])
