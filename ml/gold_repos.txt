@@ -1,0 +1,4 @@
+# Held-out repos for the hand-labelled test set. They must NOT appear in repos.txt.
+https://github.com/tiangolo/full-stack-fastapi-template
+https://github.com/pytorch/vision
+https://github.com/psf/black
