@@ -1,4 +1,3 @@
-"""LLM access (Groq/OpenAI-compatible, Ollama or Anthropic) with retries and a disk cache."""
 import hashlib
 import logging
 import time
@@ -28,7 +27,6 @@ def _model():
 
 
 def _post(url, headers=None, json=None, timeout=120, retries=3):
-    """POST with retry on 429 (rate limit) and the provider's real error text on failure."""
     for attempt in range(retries + 1):
         try:
             r = httpx.post(url, headers=headers, json=json, timeout=timeout)
@@ -93,7 +91,6 @@ def complete(prompt: str) -> str:
 
 
 def summarize_file(path: str, src: str, facts: str) -> str:
-    """Map-reduce for big files: summarise chunks, then combine."""
     chunks = [src[i:i + CHUNK] for i in range(0, len(src), CHUNK)][:MAX_CHUNKS]
     ask = "In 3-5 sentences: what does this file do and what is its role in the project?"
     if len(chunks) <= 1:
