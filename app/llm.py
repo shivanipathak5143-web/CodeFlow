@@ -12,6 +12,8 @@ SYSTEM = ("You are a senior engineer explaining a codebase to a student. "
           "Be concise and concrete, and only state what the code shows.")
 CHUNK = 4000          # characters per request (keeps requests small for free-tier limits)
 MAX_CHUNKS = 4
+PLAIN = (" Use plain text only: no tables, no headings and no markdown symbols "
+         "(no **, no |, no backticks). Use short lines starting with '- ' for lists.")
 
 
 class LLMError(RuntimeError):
@@ -89,10 +91,10 @@ def complete(prompt: str) -> str:
     path.write_text(out, encoding="utf-8")
     return out
 
-
 def summarize_file(path: str, src: str, facts: str) -> str:
+    """Map-reduce for big files: summarise chunks, then combine."""
     chunks = [src[i:i + CHUNK] for i in range(0, len(src), CHUNK)][:MAX_CHUNKS]
-    ask = "In 3-5 sentences: what does this file do and what is its role in the project?"
+    ask = "In 3-5 sentences: what does this file do and what is its role in the project?" + PLAIN
     if len(chunks) <= 1:
         return complete(f"File: {path}\nStatic-analysis facts: {facts}\n\nCode:\n{src}\n\n{ask}")
     parts = [complete(f"File: {path} (part {i + 1}/{len(chunks)})\n\n{c}\n\nSummarise this part in 2-3 sentences.")
@@ -106,4 +108,4 @@ def summarize_repo(readme: str, file_summaries: dict) -> str:
     return complete(
         f"README (truncated):\n{readme[:2000]}\n\nSummaries of the most important files:\n{body}\n\n"
         "Explain in one short paragraph what this project does, then list its main components "
-        "and how they fit together.")
+        "and how they fit together." + PLAIN)
