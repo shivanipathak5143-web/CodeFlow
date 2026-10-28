@@ -219,20 +219,6 @@ All endpoints are `POST` with a JSON body that includes the repository `url`. In
 python -m pytest -q          # backend
 cd frontend && npm run typecheck
 ```
-
-## Limitations
-
-- **Python gets the deep analysis.** JavaScript and TypeScript get imports, function names and routes from regular expressions, with no function flowcharts or call graph.
-- **Name-based matching.** Two modules or functions with the same name in different places can be confused.
-- **Weak labels.** The classifier is trained on labels from path rules, which are noisy. Its `api`, `entry` and `config` predictions are weak.
-- **Clusters are suggestions.** Low silhouette scores mean the groups overlap.
-- **Search compares words, not meaning.**
-- **PR impact reads the repository's default branch**, not the pull request's own commit.
-- **Public repositories only.**
-- **Explanations can be wrong.** They are written by a language model. Check them against the code.
-- **Not ready for public hosting.** Anyone who can reach the server can make it clone arbitrary repositories. Add rate limiting, authentication and a clone size limit before exposing it.
-- **Docker files are untested**, and the image serves the single-file page, not the React build.
-
 ## Troubleshooting
 
 - **`An Application Control policy has blocked this file` (Windows).** Smart App Control or an organisation policy is blocking a compiled file in a Python package or a command like `uvicorn.exe`. Run tools through Python (`python -m uvicorn ...`, `python -m pytest ...`). If a package such as scikit-learn is blocked, try another version, turn off Smart App Control on a personal machine, or run the project inside WSL2.
@@ -247,10 +233,3 @@ cd frontend && npm run typecheck
 - A graph neural network over the import graph for role prediction
 - Active learning: ask the user to label the model's least-confident files, then retrain
 
-## License
-
-Add a license (for example MIT) and your name here.
-
-## Credits
-
-The click effect component comes from Originkit. Check its license terms before publishing the project. Diagrams are rendered with [Mermaid](https://mermaid.js.org), animation uses [GSAP](https://gsap.com).
