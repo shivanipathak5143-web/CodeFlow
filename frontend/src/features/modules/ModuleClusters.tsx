@@ -20,7 +20,7 @@ export function ModuleClusters() {
   const m = mods.data;
 
   return (
-    <article className="page">
+    <article className="page page--wide">
       <header className="page__head">
         <p className="eyebrow mono">04 / Modules</p>
         <h1>Groups the code falls into</h1>

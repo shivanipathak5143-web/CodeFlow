@@ -5,9 +5,11 @@ interface Props {
   code: string;
   svgRef: MutableRefObject<SVGSVGElement | null>;
   name: string;
+  fit: boolean;
+  onToggleFit: () => void;
 }
 
-export function DiagramToolbar({ code, svgRef, name }: Props) {
+export function DiagramToolbar({ code, svgRef, name, fit, onToggleFit }: Props) {
   const [msg, setMsg] = useState("");
   const flash = (t: string) => {
     setMsg(t);
@@ -23,6 +25,8 @@ export function DiagramToolbar({ code, svgRef, name }: Props) {
     }
   }
 
+  const disabled = !code;
+
   async function png() {
     if (!svgRef.current) return flash("Diagram is not ready");
     try {
@@ -32,9 +36,11 @@ export function DiagramToolbar({ code, svgRef, name }: Props) {
     }
   }
 
-  const disabled = !code;
   return (
     <div className="toolbar">
+      <button className="btn btn--ghost" disabled={disabled} onClick={onToggleFit}>
+        {fit ? "Actual size" : "Fit width"}
+      </button>
       <button className="btn btn--ghost" disabled={disabled} onClick={() => copy(portableMermaid(code), "Mermaid")}>
         Copy Mermaid
       </button>

@@ -11,7 +11,13 @@ const STEPS: [string, string, string][] = [
   ["06", "Explain", "A language model reads the README and a few top files, only when you press the button."],
 ];
 
-
+/*
+ * HERO SLOT
+ * Originkit "Hero 54" was not available when this was written (its registry could not be reached).
+ * To use it: run  npx originkit@latest add hero-54  inside frontend/, then replace the
+ * <section className="hero"> block below with the generated component and keep <RepositoryForm />
+ * inside it.
+ */
 export default function Landing() {
   return (
     <div className="landing">

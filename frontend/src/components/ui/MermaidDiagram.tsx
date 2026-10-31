@@ -17,7 +17,7 @@ function loadMermaid(): Promise<MermaidApi> {
         flowchart: { htmlLabels: false, useMaxWidth: false, curve: "linear" },
         themeVariables: {
           fontFamily: "'IBM Plex Mono', ui-monospace, monospace",
-          fontSize: "13px",
+          fontSize: "16px",
           background: "#0e0d0b",
           mainBkg: "#1a1915",
           primaryColor: "#1a1915",

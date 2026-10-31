@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { DiagramToolbar } from "./DiagramToolbar";
 import { MermaidDiagram } from "./MermaidDiagram";
 
@@ -10,13 +10,14 @@ interface Props {
   emptyText?: string;
 }
 
-/** A diagram plus its export buttons. */
+/** A diagram plus its export buttons. Fits the panel width by default; "Actual size" scrolls instead. */
 export function DiagramPanel({ code, name, idmap, onNodeClick, emptyText }: Props) {
   const svgRef = useRef<SVGSVGElement | null>(null);
+  const [fit, setFit] = useState(true);
   return (
-    <div className="panel">
+    <div className={fit ? "panel panel--fit" : "panel"}>
       <MermaidDiagram code={code} idmap={idmap} onNodeClick={onNodeClick} svgRef={svgRef} emptyText={emptyText} />
-      <DiagramToolbar code={code} svgRef={svgRef} name={name} />
+      <DiagramToolbar code={code} svgRef={svgRef} name={name} fit={fit} onToggleFit={() => setFit((f) => !f)} />
     </div>
   );
 }

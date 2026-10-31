@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { api, messageOf } from "../../api/client";
+import { ApiError, api, messageOf } from "../../api/client";
 import type { TraceResponse } from "../../api/types";
 import { useLoadedRepo } from "../../app/providers";
 import { DiagramPanel } from "../../components/ui/DiagramPanel";
@@ -25,7 +25,11 @@ export function CallTrace() {
     try {
       setResult(await api.trace(url, target.trim(), start.trim()));
     } catch (err) {
-      setError(messageOf(err));
+      const hint =
+        err instanceof ApiError && err.status === 404
+          ? " Call tracing follows Python functions only, so JavaScript and TypeScript repositories never return a path."
+          : "";
+      setError(messageOf(err) + hint);
     } finally {
       setBusy(false);
     }

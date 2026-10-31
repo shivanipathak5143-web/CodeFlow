@@ -11,7 +11,7 @@ export function RepositoryGraph() {
   const showing = view === "pipeline" && data.ml_mermaid ? data.ml_mermaid : data.mermaid;
 
   return (
-    <article className="page">
+    <article className="page page--wide">
       <header className="page__head">
         <p className="eyebrow mono">02 / Architecture</p>
         <h1>What imports what</h1>
