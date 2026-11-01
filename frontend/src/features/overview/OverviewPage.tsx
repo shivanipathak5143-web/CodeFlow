@@ -7,6 +7,7 @@ import { ErrorNote } from "../../components/ui/ErrorNote";
 import { useElapsed } from "../../hooks/useElapsed";
 import { filePath, repoName } from "../../lib/format";
 import { StatsCards } from "./StatsCards";
+import { Explanation } from "../../components/ui/Explanation";
 
 export function OverviewPage() {
   const { url, data } = useLoadedRepo();
@@ -68,7 +69,7 @@ export function OverviewPage() {
           {loading ? `Reading files… ${elapsed}s` : summary ? "Explain again" : "Explain this repo"}
         </button>
         <ErrorNote message={error} />
-        {summary && <p className="prose">{summary}</p>}
+          {summary && <Explanation text={summary} />}
       </section>
 
       {data.ml_mermaid && (
