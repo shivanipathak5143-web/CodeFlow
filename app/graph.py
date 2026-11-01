@@ -84,20 +84,33 @@ def is_ml_repo(infos) -> bool:
     return any(i.split(".")[0] in ML_LIBS for info in infos.values() for i in info.imports)
 
 
-def ml_pipeline_mermaid(roles, ranks, per_stage=6):
-    """roles: path -> role string (from the trained classifier, or keyword fallback)."""
+def _short(path: str, limit: int = 24) -> str:
+    """File name only; very long names keep their tail. Full paths made the boxes huge."""
+    name = posixpath.basename(path)
+    return name if len(name) <= limit else "…" + name[-(limit - 1):]
+
+
+def ml_pipeline_mermaid(roles, ranks, per_stage=5):
+    """roles: path -> role string (from the trained classifier, or keyword fallback).
+
+    Stages are stacked top to bottom, each stage's files sit in one row, and boxes show
+    file names only. That keeps the diagram narrow enough to read. The order is shown by
+    the numbers in the titles; invisible links (~~~) between the first file of each stage
+    are what force the stacking."""
     stages = {s: [] for s in STAGE_ORDER}
     for path, role in roles.items():
         if role in stages:
             stages[role].append(path)
-    lines, present = ["flowchart LR"], []
+    lines, present = ["flowchart TB"], []
     for s in STAGE_ORDER:
         files = sorted(stages[s], key=lambda f: -ranks.get(f, 0))[:per_stage]
         if not files:
             continue
         present.append(s)
-        lines.append(f'  subgraph stage_{s}["{STAGE_TITLES[s]}"]')
-        lines += [f'    {s[:3]}{i}["{_safe(f)}"]' for i, f in enumerate(files)]
+        extra = len(stages[s]) - len(files)
+        title = f"{len(present)}. {STAGE_TITLES[s]}" + (f" (+{extra} more)" if extra > 0 else "")
+        lines.append(f'  subgraph stage_{s}["{title}"]')
+        lines += [f'    {s[:3]}{i}["{_safe(_short(f))}"]' for i, f in enumerate(files)]
         lines.append("  end")
-    lines += [f"  stage_{a} --> stage_{b}" for a, b in zip(present, present[1:])]
+    lines += [f"  {a[:3]}0 ~~~ {b[:3]}0" for a, b in zip(present, present[1:])]
     return "\n".join(lines) if present else ""
