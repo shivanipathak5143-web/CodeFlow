@@ -250,3 +250,17 @@ textarea.input { width: 100%; resize: vertical; }
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; }
 }
+/* ---------- explanations (repo and file summaries) ---------- */
+.explain { margin-top: 28px; }
+.explain__lead { font: 400 clamp(23px, 2vw, 32px)/1.35 var(--serif); letter-spacing: -0.005em; max-width: 58ch; margin-bottom: 40px; text-wrap: pretty; }
+.explain__para { max-width: 70ch; color: var(--ink-2); margin: 0 0 18px; }
+.explain__label { margin: 40px 0 12px; }
+.explain__items { border-top: 1px solid var(--ink); }
+.explain__items li { display: grid; grid-template-columns: minmax(190px, 270px) minmax(0, 1fr); gap: 6px 36px; padding: 15px 0; border-bottom: 1px solid var(--rule); }
+.explain__items li.is-plain { grid-template-columns: minmax(0, 1fr); }
+.explain__items b { font: 600 16px/1.4 var(--sans); color: var(--ink); }
+.explain__items span { color: var(--ink-2); max-width: 76ch; }
+.explain code { font: 500 0.86em var(--mono); background: var(--bg-2); border: 1px solid var(--rule); padding: 1px 6px; color: var(--ink); white-space: nowrap; }
+.filesummary .explain { margin-top: 16px; }
+.filesummary .explain__lead { font-size: 21px; margin-bottom: 24px; }
+@media (max-width: 980px) { .explain__items li { grid-template-columns: 1fr; } }
