@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { api, messageOf } from "../../api/client";
 import { ErrorNote } from "../../components/ui/ErrorNote";
 import { useElapsed } from "../../hooks/useElapsed";
+import { Explanation } from "../../components/ui/Explanation";
 
 export function FileSummary({ url, path }: { url: string; path: string }) {
   const [text, setText] = useState<string | null>(null);
@@ -33,7 +34,7 @@ export function FileSummary({ url, path }: { url: string; path: string }) {
         {loading ? `Reading… ${elapsed}s` : text ? "Explain again" : "Explain this file"}
       </button>
       <ErrorNote message={error} />
-      {text && <p className="prose">{text}</p>}
+        {text && <Explanation text={text} />}
     </div>
   );
 }
