@@ -19,9 +19,42 @@ def build_import_graph(infos, resolved):
     return G
 
 
+def pick_connected(G, ranks, max_nodes=40):
+    """The best-ranked files, keeping only files that link to another chosen file.
+
+    A plain top-N often contains many files whose importers were cut off. They end up with
+    no arrows and sit in one very wide row. Here a file is only added when it is linked to a
+    file already chosen (the best file of each separate part of the repo is the starting
+    point), so every box in the diagram is connected."""
+    comp = {}
+    for i, members in enumerate(nx.weakly_connected_components(G)):
+        for n in members:
+            comp[n] = i
+    remaining = [n for n in sorted(G.nodes, key=lambda n: -ranks.get(n, 0)) if G.degree(n) > 0]
+    chosen, chosen_set, seeded = [], set(), set()
+    changed = True
+    while changed and len(chosen) < max_nodes:
+        changed = False
+        for n in list(remaining):
+            if len(chosen) >= max_nodes:
+                break
+            linked = any(m in chosen_set for m in G.successors(n)) or any(m in chosen_set for m in G.predecessors(n))
+            starts_new_part = comp[n] not in seeded and len(chosen) + 2 <= max_nodes
+            if linked or starts_new_part:
+                chosen.append(n)
+                chosen_set.add(n)
+                seeded.add(comp[n])
+                remaining.remove(n)
+                changed = True
+    # a part of the repo that only got one box (its neighbour did not fit) would be unlinked
+    chosen = [n for n in chosen
+              if any(m in chosen_set for m in G.successors(n)) or any(m in chosen_set for m in G.predecessors(n))]
+    return chosen or sorted(G.nodes, key=lambda n: -ranks.get(n, 0))[:max_nodes]
+
+
 def to_mermaid(G, ranks, max_nodes=40, highlight=None, only=None):
     """Return (mermaid_text, id_to_path). Large repos: only the top-ranked files are drawn."""
-    nodes = list(only) if only else sorted(G.nodes, key=lambda n: -ranks.get(n, 0))[:max_nodes]
+    nodes = list(only) if only else pick_connected(G, ranks, max_nodes)
     ids = {n: f"n{i}" for i, n in enumerate(nodes)}
     groups = {}
     for n in nodes:
@@ -29,8 +62,11 @@ def to_mermaid(G, ranks, max_nodes=40, highlight=None, only=None):
     lines = ["flowchart LR"]
     for gi, (g, members) in enumerate(sorted(groups.items())):
         lines.append(f'  subgraph g{gi}["{_safe(g)}"]')
+        lines.append("    direction LR")   # without this Mermaid flips the direction inside groups
         lines += [f'    {ids[n]}["{_safe(posixpath.basename(n))}"]' for n in members]
         lines.append("  end")
+    # Place groups side by side, two per row, instead of one long stack (invisible links).
+    lines += [f"  g{i} ~~~ g{i + 1}" for i in range(0, len(groups) - 1, 2)]
     lines += [f"  {ids[a]} --> {ids[b]}" for a, b in G.edges if a in ids and b in ids]
     lines += [f'  click {ids[n]} call showFile("{ids[n]}")' for n in nodes]
     if highlight:

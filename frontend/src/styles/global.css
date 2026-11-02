@@ -158,7 +158,8 @@ textarea.input { width: 100%; resize: vertical; }
 .tabs button[aria-selected="true"] { color: var(--ink); box-shadow: inset 0 -2px var(--accent); }
 .panel { border: 1px solid var(--rule); background: var(--bg-2); padding: 16px; margin-top: 16px; }
 .diagram { overflow: auto; max-height: 80vh; }
-.panel--fit .diagram svg { width: 100%; height: auto; max-width: none !important; }
+.panel--fit .diagram { max-height: none; }
+.panel--fit .diagram svg { max-width: 100% !important; height: auto; }
 .diagram svg { display: block; margin: 0 auto; }
 .diagram g.node[data-path]:hover rect,
 .diagram g.node[data-path]:hover polygon { stroke: var(--accent) !important; stroke-width: 1.5px !important; }
