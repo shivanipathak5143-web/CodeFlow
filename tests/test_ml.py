@@ -70,4 +70,5 @@ def test_search_finds_relevant_file():
 
 def test_ml_pipeline_view_uses_roles():
     m = graph.ml_pipeline_mermaid({"a.py": "data", "b.py": "model", "c.py": "util"}, {})
-    assert "stage_data --> stage_model" in m and "c.py" not in m
+    assert "dat0 ~~~ mod0" in m and "c.py" not in m
+    assert graph.ml_pipeline_mermaid({"u.py": "util"}, {}) == ""
