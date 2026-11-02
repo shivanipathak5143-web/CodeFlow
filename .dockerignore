@@ -1,5 +1,12 @@
-.venv
-.git
-frontend
-tests
-__pycache__
+.venv/
+.git/
+.cache/
+data/
+models/
+.env
+__pycache__/
+.pytest_cache/
+tests/
+eval/
+ml/
+*.md

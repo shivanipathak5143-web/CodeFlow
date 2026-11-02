@@ -1,0 +1,19 @@
+services:
+  codeflow:
+    build: .
+    ports:
+      - "8000:8000"
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      # only used if you set LLM_PROVIDER=ollama in .env (Ollama running on your host)
+      OLLAMA_URL: http://host.docker.internal:11434
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - repolens-data:/data
+      - ./models:/srv/models:ro   # your trained role classifier
+
+volumes:
+  codeflow-data:
