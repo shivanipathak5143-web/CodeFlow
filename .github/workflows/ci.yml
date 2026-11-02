@@ -1,19 +1,62 @@
-services:
-  codeflow:
-    build: .
-    ports:
-      - "8000:8000"
-    env_file:
-      - path: .env
-        required: false
-    environment:
-      # only used if you set LLM_PROVIDER=ollama in .env (Ollama running on your host)
-      OLLAMA_URL: http://host.docker.internal:11434
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    volumes:
-      - repolens-data:/data
-      - ./models:/srv/models:ro   # your trained role classifier
+name: CI/CD
 
-volumes:
-  codeflow-data:
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: ap-south-1
+  ECR_REPO: repolens
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+      - run: python -m pytest -q
+
+  deploy:
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push image
+        run: |
+          IMAGE=${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPO }}
+          docker build -t $IMAGE:${{ github.sha }} -t $IMAGE:latest .
+          docker push $IMAGE:${{ github.sha }}
+          docker push $IMAGE:latest
+          echo "IMAGE_URI=$IMAGE:${{ github.sha }}" >> $GITHUB_ENV
+
+      - name: Deploy to EC2 via SSM
+        run: |
+          CMD_ID=$(aws ssm send-command \
+            --instance-ids ${{ secrets.EC2_INSTANCE_ID }} \
+            --document-name AWS-RunShellScript \
+            --parameters "commands=[\"/opt/repolens/deploy.sh $IMAGE_URI\"]" \
+            --query Command.CommandId --output text)
+          aws ssm wait command-executed --command-id $CMD_ID --instance-id ${{ secrets.EC2_INSTANCE_ID }} || true
+          aws ssm get-command-invocation --command-id $CMD_ID --instance-id ${{ secrets.EC2_INSTANCE_ID }} \
+            --query '[Status, StandardOutputContent, StandardErrorContent]' --output text
+          STATUS=$(aws ssm get-command-invocation --command-id $CMD_ID \
+            --instance-id ${{ secrets.EC2_INSTANCE_ID }} --query Status --output text)
+          [ "$STATUS" = "Success" ]
