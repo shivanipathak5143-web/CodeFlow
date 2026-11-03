@@ -216,7 +216,6 @@ def pr_impact(req: DiffReq):
     return {"changed": changed, "affected": affected, "mermaid": mer, "idmap": idmap}
 
 
-# ---------- built React frontend (must stay at the very bottom, after all /api routes) ----------
 
 if (STATIC / "assets").is_dir():
     app.mount("/assets", StaticFiles(directory=STATIC / "assets"), name="assets")
