@@ -1,9 +1,11 @@
 import subprocess
+import time
+from collections import defaultdict, deque
 from pathlib import Path
 from typing import Optional
 
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
@@ -12,6 +14,33 @@ from . import analysis, dataflow, diff, embed, flowchart, graph, llm, repo, role
 app = FastAPI(title="RepoLens")
 STATIC = Path(__file__).resolve().parent.parent / "static"
 _cache: dict = {}
+
+# ---------- simple per-IP rate limiting (protects your server and LLM quota) ----------
+_hits = defaultdict(deque)
+# path -> (max requests, per N seconds)
+LIMITS = {
+    "/api/analyze": (4, 60),
+    "/api/summary": (3, 60),
+    "/api/file_summary": (10, 60),
+}
+DEFAULT_LIMIT = (40, 60)
+
+
+@app.middleware("http")
+async def rate_limit(request: Request, call_next):
+    path = request.url.path
+    if path.startswith("/api/"):
+        limit, window = LIMITS.get(path, DEFAULT_LIMIT)
+        key = (request.client.host if request.client else "unknown", path)
+        now = time.time()
+        q = _hits[key]
+        while q and now - q[0] > window:
+            q.popleft()
+        if len(q) >= limit:
+            return JSONResponse({"detail": "Too many requests. Please wait a minute."},
+                                status_code=429)
+        q.append(now)
+    return await call_next(request)
 
 
 class RepoReq(BaseModel):
@@ -187,9 +216,22 @@ def pr_impact(req: DiffReq):
     return {"changed": changed, "affected": affected, "mermaid": mer, "idmap": idmap}
 
 
-@app.get("/")
-def index():
-    return FileResponse(STATIC / "index.html")
+# ---------- built React frontend (must stay at the very bottom, after all /api routes) ----------
+
+if (STATIC / "assets").is_dir():
+    app.mount("/assets", StaticFiles(directory=STATIC / "assets"), name="assets")
 
 
-app.mount("/static", StaticFiles(directory=STATIC), name="static")
+@app.get("/{full_path:path}")
+def spa(full_path: str):
+    """Serve the built React app. Unknown paths get index.html so React Router can handle them."""
+    if full_path.startswith("api/"):
+        raise HTTPException(404, "Not found")
+    root = STATIC.resolve()
+    candidate = (STATIC / full_path).resolve()
+    if full_path and candidate.is_file() and root in candidate.parents:
+        return FileResponse(candidate)
+    index = STATIC / "index.html"
+    if not index.exists():
+        raise HTTPException(404, "Frontend not built")
+    return FileResponse(index)
