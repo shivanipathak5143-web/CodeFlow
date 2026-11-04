@@ -219,12 +219,6 @@ All endpoints are `POST` with a JSON body that includes the repository `url`. In
 python -m pytest -q          # backend
 cd frontend && npm run typecheck
 ```
-## Troubleshooting
-
-- **`An Application Control policy has blocked this file` (Windows).** Smart App Control or an organisation policy is blocking a compiled file in a Python package or a command like `uvicorn.exe`. Run tools through Python (`python -m uvicorn ...`, `python -m pytest ...`). If a package such as scikit-learn is blocked, try another version, turn off Smart App Control on a personal machine, or run the project inside WSL2.
-- **"Cannot reach the backend" in the UI.** The Python server is not running on port 8000.
-- **`401` or `model not found` from the language model.** Run `python -m app.check_llm`.
-- **File roles say "keyword rules".** Train the classifier and restart the backend.
 
 ## Roadmap
 
