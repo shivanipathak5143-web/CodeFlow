@@ -2,10 +2,6 @@
 
 Paste a public GitHub repository. CodeFlow clones it, parses it, and shows you what imports what, which files to read first, and plain-language notes on each file.
 
-[![CI](https://github.com/YOUR_USERNAME/YOUR_REPO/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_USERNAME/YOUR_REPO/actions)
-
-<!-- Add a screenshot or short GIF here: ![CodeFlow screenshot](docs/screenshot.png) -->
-
 The structure comes from static analysis, not from a language model. A language model only writes the text explanations, and only when you press a button. That keeps the diagrams grounded in the real import graph instead of a model's guess.
 
 ## Features
